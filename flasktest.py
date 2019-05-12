@@ -1,4 +1,4 @@
-import time
+import datetime
 import os
 from os import listdir
 from os.path import isfile, join
@@ -21,7 +21,7 @@ camera.start()
 
 @app.route('/api/capture')
 def capture():
-    FILENAME = CAPTURES_DIR + time.strftime("%x,%X").replace("/",".") + ".png"
+    FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
     pygame.display.flip()
     screen = pygame.surface.Surface(SIZE, 0, display)
     screen = camera.get_image(screen)

@@ -30,7 +30,7 @@ def capture():
 
 @app.route('/api/images')
 def images():
-    onlyfiles = [f for f in listdir(CAPTURES_DIR) if isfile(join(CAPTURES_DIR, f))]
+    onlyfiles = [{"name": f} for f in listdir(CAPTURES_DIR) if isfile(join(CAPTURES_DIR, f))]
     return jsonify(onlyfiles)
 
 @app.route('/api/images/<img>')

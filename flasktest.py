@@ -1,13 +1,16 @@
+import time
+import os
 from os import listdir
 from os.path import isfile, join
+
 import pygame
 import pygame.camera
-from pygame.locals import *
 from flask import Flask
-from flask import send_file
 from flask import jsonify
-import time
+from flask import send_file
+
 DEVICE = '/dev/video0'
+CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
 pygame.init()
@@ -18,7 +21,7 @@ camera.start()
 
 @app.route('/api/capture')
 def capture():
-    FILENAME = '/home/pi/captures/' + time.strftime("%x,%X").replace("/",".") + ".png"
+    FILENAME = CAPTURES_DIR + time.strftime("%x,%X").replace("/",".") + ".png"
     pygame.display.flip()
     screen = pygame.surface.Surface(SIZE, 0, display)
     screen = camera.get_image(screen)
@@ -27,12 +30,12 @@ def capture():
 
 @app.route('/api/images')
 def images():
-    onlyfiles = [f for f in listdir('/home/pi/captures/') if isfile(join('/home/pi/captures/', f))]
+    onlyfiles = [f for f in listdir(CAPTURES_DIR) if isfile(join(CAPTURES_DIR, f))]
     return jsonify(onlyfiles)
 
 @app.route('/api/images/<img>')
 def showimage(img):
-    FILENAME = '/home/pi/captures/' + img
+    FILENAME = CAPTURES_DIR + img
     return send_file(FILENAME, mimetype='image/png')
 
 @app.route('/quit')

@@ -26,7 +26,7 @@ def capture():
     screen = pygame.surface.Surface(SIZE, 0, display)
     screen = camera.get_image(screen)
     pygame.image.save(screen, FILENAME)
-    return send_file(FILENAME, mimetype='image/png')
+    return send_file(FILENAME, mimetype='image/jpg')
 
 @app.route('/api/images')
 def images():
@@ -36,7 +36,7 @@ def images():
 @app.route('/api/images/<img>')
 def showimage(img):
     FILENAME = CAPTURES_DIR + img
-    return send_file(FILENAME, mimetype='image/png')
+    return send_file(FILENAME, mimetype='image/jpg')
 
 @app.route('/quit')
 def quit():

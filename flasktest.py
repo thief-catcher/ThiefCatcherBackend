@@ -3,8 +3,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-import pygame
-import pygame.camera
+import cv2
 from flask import Flask
 from flask import jsonify
 from flask import send_file
@@ -13,19 +12,12 @@ DEVICE = '/dev/video0'
 CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
-pygame.init()
-pygame.camera.init()
-display = pygame.display.set_mode(SIZE, 0)
-camera = pygame.camera.Camera(DEVICE, SIZE)
-camera.start()
+camera = cv2.VideoCapture(0)
 
 @app.route('/api/capture')
 def capture():
     FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
-    pygame.display.flip()
-    screen = pygame.surface.Surface(SIZE, 0, display)
-    screen = camera.get_image(screen)
-    pygame.image.save(screen, FILENAME)
+    cv2.imwrite(FILENAME, camera.read()[1])
     return send_file(FILENAME, mimetype='image/jpg')
 
 @app.route('/api/images')
@@ -38,7 +30,3 @@ def showimage(img):
     FILENAME = CAPTURES_DIR + img
     return send_file(FILENAME, mimetype='image/jpg')
 
-@app.route('/quit')
-def quit():
-    camera.stop()
-    pygame.quit()

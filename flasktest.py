@@ -17,16 +17,20 @@ camera = cv2.VideoCapture(0)
 sensor = MotionSensor(1) #GPIO slot for sensor =1
 buzzer = Buzzer(2)
 
-@app.route('/api/capture')
-def capture():
-    FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
-    cv2.imwrite(FILENAME, camera.read()[1])
-    return send_file(FILENAME, mimetype='image/jpg')
+
+
+
+@app.route('/api/images/capture')
+def takePhoto():
+    cv2.imwrite(CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg", camera.read()[1])
+    return """"""
+
 
 @app.route('/api/images')
 def images():
     onlyfiles = [{"name": f} for f in listdir(CAPTURES_DIR) if isfile(join(CAPTURES_DIR, f))]
     return jsonify(onlyfiles)
+
 
 @app.route('/api/images/<img>')
 def showimage(img):
@@ -40,6 +44,5 @@ def mute_buzzer():
 def motion_capture():
     capture()
     buzzer.on()
-
 
 sensor.when_motion = motion_capture

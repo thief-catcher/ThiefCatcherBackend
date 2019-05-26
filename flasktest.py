@@ -30,3 +30,5 @@ def showimage(img):
     FILENAME = CAPTURES_DIR + img
     return send_file(FILENAME, mimetype='image/jpg')
 
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', threaded=True)

@@ -68,12 +68,4 @@ class Camera():
 
         return Camera.frame
 
-    # def get_frame(self):
-    #     """Return the current camera frame."""
-    #     self.last_access = time.time()
-    #
-    #     # wait for a signal from the camera thread
-    #     self.event.wait()
-    #     self.event.clear()
-    #
-    #     return self.frame
+

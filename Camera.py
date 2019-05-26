@@ -68,4 +68,3 @@ class Camera():
 
         return Camera.frame
 
-

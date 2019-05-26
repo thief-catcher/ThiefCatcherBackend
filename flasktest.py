@@ -16,7 +16,7 @@ CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
 cam = Camera()
-#
+
 #
 @app.route('/api/capture')
 def capture():
@@ -24,6 +24,7 @@ def capture():
     cv2.imwrite(FILENAME, cam.camera.read()[1])
     return send_file(FILENAME, mimetype='image/jpg')
 #
+
 
 @app.route('/api/images')
 def images():

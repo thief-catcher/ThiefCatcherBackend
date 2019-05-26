@@ -2,27 +2,37 @@ import datetime
 import os
 from os import listdir
 from os.path import isfile, join
-
+import urllib
+import requests
 import cv2
 from flask import Flask
 from flask import jsonify
 from flask import send_file
-from gpiozero import MotionSensor, Buzzer
+from gpiozero import MotionSensor, Buzzer, InputDevice
+import time
+import numpy as np
 
-DEVICE = '/dev/video0'
 CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
-sensor = MotionSensor(1) #GPIO slot for sensor =1
-buzzer = Buzzer(2)
+sensor = MotionSensor(24) #GPIO slot for sensor =1
+buzzer = Buzzer(23)
+door = InputDevice(18)
+
+buzzer.on()
+time.sleep(1)
+buzzer.off()
+
 
 
 
 
 @app.route('/api/images/capture')
 def takePhoto():
-    cv2.imwrite(CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg", camera.read()[1])
+    req = urllib.request.urlopen('http://localhost:8080/?action=snapshot')
+    arr = np.asarray(bytearray(req.read()), dtype='uint8')
+    img = cv2.imdecode(arr, -1)
+    cv2.imwrite(CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg", img)
     return """"""
 
 
@@ -40,9 +50,15 @@ def showimage(img):
 @app.route('/api/mute')
 def mute_buzzer():
     buzzer.off()
+    print(door.value)
 
 def motion_capture():
-    capture()
+    takePhoto()
+    print("motion detected")
     buzzer.on()
 
+def test():
+    print("dziala")
+
 sensor.when_motion = motion_capture
+sensor.when_no_motion = mute_buzzer

@@ -15,16 +15,15 @@ DEVICE = '/dev/video0'
 CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
-# cam = Camera()
+cam = Camera()
 #
 #
 @app.route('/api/capture')
 def capture():
     FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
-    cv2.imwrite(FILENAME, camera.read()[1])
+    cv2.imwrite(FILENAME, cam.camera.read()[1])
     return send_file(FILENAME, mimetype='image/jpg')
-
+#
 
 @app.route('/api/images')
 def images():
@@ -37,10 +36,10 @@ def showimage(img):
     FILENAME = CAPTURES_DIR + img
     return send_file(FILENAME, mimetype='image/jpg')
 
-3
+
 @app.route('/api/live')
 def livestream():
-    return Response(gen(Camera(camera)), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen(cam), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 def gen(camera):

@@ -6,15 +6,19 @@ import urllib
 import requests
 import cv2
 from flask import Flask
+from flask import Response
 from flask import jsonify
 from flask import send_file
 from gpiozero import MotionSensor, Buzzer, InputDevice
 import time
 import numpy as np
+from Camera import Camera
 
+DEVICE = '/dev/video0'
 CAPTURES_DIR = os.getcwd() + '/captures/'
 SIZE = (640, 480)
 app = Flask(__name__)
+cam = Camera()
 sensor = MotionSensor(24) #GPIO slot for sensor =1
 buzzer = Buzzer(23)
 door = InputDevice(18)
@@ -24,16 +28,11 @@ time.sleep(1)
 buzzer.off()
 
 
-
-
-
-@app.route('/api/images/capture')
-def takePhoto():
-    req = urllib.request.urlopen('http://localhost:8080/?action=snapshot')
-    arr = np.asarray(bytearray(req.read()), dtype='uint8')
-    img = cv2.imdecode(arr, -1)
-    cv2.imwrite(CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg", img)
-    return """"""
+@app.route('/api/capture')
+def capture():
+    FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
+    cv2.imwrite(FILENAME, cam.camera.read()[1])
+    return send_file(FILENAME, mimetype='image/jpg')
 
 
 @app.route('/api/images')
@@ -47,6 +46,17 @@ def showimage(img):
     FILENAME = CAPTURES_DIR + img
     return send_file(FILENAME, mimetype='image/jpg')
 
+@app.route('/api/live')
+def livestream():
+    return Response(gen(cam), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
 @app.route('/api/mute')
 def mute_buzzer():
     buzzer.off()
@@ -57,8 +67,10 @@ def motion_capture():
     print("motion detected")
     buzzer.on()
 
-def test():
-    print("dziala")
-
 sensor.when_motion = motion_capture
 sensor.when_no_motion = mute_buzzer
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', threaded=True)
+

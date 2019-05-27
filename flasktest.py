@@ -9,10 +9,11 @@ from flask import Flask
 from flask import Response
 from flask import jsonify
 from flask import send_file
-from gpiozero import MotionSensor, Buzzer, InputDevice
+from gpiozero import MotionSensor, Buzzer, Button
 import time
 import numpy as np
 from Camera import Camera
+from threading import Thread
 
 DEVICE = '/dev/video0'
 CAPTURES_DIR = os.getcwd() + '/captures/'
@@ -21,11 +22,7 @@ app = Flask(__name__)
 cam = Camera()
 sensor = MotionSensor(24) #GPIO slot for sensor =1
 buzzer = Buzzer(23)
-door = InputDevice(18)
-
-buzzer.on()
-time.sleep(1)
-buzzer.off()
+door = Button(18)
 
 
 @app.route('/api/capture')
@@ -33,7 +30,10 @@ def capture():
     FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
     cv2.imwrite(FILENAME, cam.camera.read()[1])
     return send_file(FILENAME, mimetype='image/jpg')
-
+    
+def capture_nohttp():
+    FILENAME = CAPTURES_DIR + datetime.datetime.now().isoformat() + ".jpg"
+    cv2.imwrite(FILENAME, cam.camera.read()[1])
 
 @app.route('/api/images')
 def images():
@@ -62,13 +62,32 @@ def mute_buzzer():
     buzzer.off()
     print(door.value)
 
-def motion_capture():
-    takePhoto()
-    print("motion detected")
-    buzzer.on()
 
-sensor.when_motion = motion_capture
-sensor.when_no_motion = mute_buzzer
+def door_unlock():
+    print("Door unlocked, starting stream")
+    gen(cam)
+
+def async(f):
+    def wrapper(*args, **kwargs):
+        thr = Thread(target=f, args=args, kwargs=kwargs)
+        thr.start()
+    return wrapper
+    
+@async
+def motion_capture():
+    with app.app_context():
+        capture_nohttp()
+        print("motion detected")
+        buzzer.on()
+
+@async
+def fsensor():
+    with app.app_context():
+        sensor.when_motion = motion_capture
+        sensor.when_no_motion = mute_buzzer
+        door.when_released = door_unlock
+
+fsensor()
 
 
 if __name__ == '__main__':

@@ -23,8 +23,7 @@ cam = Camera()
 sensor = MotionSensor(24)  # GPIO slot for sensor =1
 buzzer = Buzzer(23)
 door = Button(18)
-
-
+#
 buzzer.on()
 time.sleep(1)
 buzzer.off()
@@ -47,6 +46,9 @@ def images():
     onlyfiles = [{"name": f} for f in listdir(CAPTURES_DIR) if isfile(join(CAPTURES_DIR, f))]
     return jsonify(onlyfiles)
 
+@app.route('/api/alarm')
+def get_alarm():
+    return jsonify({"alarm": cam.alarm})
 
 @app.route('/api/images/<img>')
 def showimage(img):
@@ -67,16 +69,26 @@ def gen(camera):
 
 
 @app.route('/api/toggle')
-def toggle_buzzer():
-    if buzzer.is_active:
-        buzzer.off()
-    else:
-        buzzer.on()
+def toggle_alarm():
+    _toggle_alarm(not cam.alarm)
+    return ""
 
+
+def _toggle_alarm(cond):
+    cam.alarm = cond
+    if cam.alarm:
+        for i in range(0, 5):
+            buzzer.on()
+            time.sleep(0.5)
+            buzzer.off()
+            time.sleep(0.5)
+    else:
+        buzzer.off()
 
 
 def door_unlock():
     print("Door unlocked, starting stream")
+    _toggle_alarm(True)
     # gen(cam)
 
 
@@ -93,9 +105,10 @@ def motion_capture():
     with app.app_context():
         capture_nohttp()
         print("motion detected")
-        buzzer.on()
-        time.sleep(0.5)
-        buzzer.off()
+        _toggle_alarm(True)
+        # buzzer.on()
+        # time.sleep(0.5)
+        # buzzer.off()
 
 
 @async

@@ -7,6 +7,7 @@ from CameraEvent import CameraEvent
 
 
 class Camera():
+    alarm = False
     thread = None
     frame = None
     last_access = 0

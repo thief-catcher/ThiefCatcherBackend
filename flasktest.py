@@ -71,7 +71,7 @@ def gen(camera):
 @app.route('/api/toggle')
 def toggle_alarm():
     _toggle_alarm(not cam.alarm)
-    return ""
+    return jsonify({"alarm": cam.alarm})
 
 
 def _toggle_alarm(cond):
